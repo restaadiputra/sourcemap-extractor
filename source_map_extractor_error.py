@@ -1,0 +1,2 @@
+class SourceMapExtractorError(Exception):
+    pass
