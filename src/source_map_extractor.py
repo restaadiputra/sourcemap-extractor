@@ -1,11 +1,3 @@
-"""
-  unwebpack.py
-
-  Reads Webpack source maps and extracts the disclosed un-compiled/commented source code for review.
-  Can detect and attempt to read sourcemaps from Webpack bundles with the `-d` flag.
-  Put source into a directory structure similar to dev.
-"""
-
 import argparse
 import json
 import os
@@ -17,8 +9,8 @@ from urllib.parse import urlparse
 from unicodedata import normalize
 from bs4 import BeautifulSoup, SoupStrainer
 
-from path_sanitiser import PathSanitiser
-from source_map_extractor_error import SourceMapExtractorError
+from src.path_sanitiser import PathSanitiser
+from src.source_map_extractor_error import SourceMapExtractorError
 
 class SourceMapExtractor(object):
     """Primary SourceMapExtractor class. Feed this arguments."""
@@ -39,12 +31,8 @@ class SourceMapExtractor(object):
         else:
             self._output_directory = os.path.abspath(options['output_directory'])
             if not os.path.isdir(self._output_directory):
-                if options['make_directory'] is True:
-                    os.mkdir(self._output_directory)
-                    sys.exit(0)
-                else:
-                    raise SourceMapExtractorError("output_directory does not exist. Pass --make-directory to auto-make it.")
-
+                os.mkdir(self._output_directory)
+                
         self._path_sanitiser = PathSanitiser(self._output_directory)
 
         if options['local'] == True:
@@ -54,7 +42,6 @@ class SourceMapExtractor(object):
             self._attempt_sourcemap_detection = True
 
         self._validate_target(options['uri_or_file'])
-
 
     def run(self):
         """Run extraction process."""
@@ -69,9 +56,8 @@ class SourceMapExtractor(object):
         else:
             self._parse_sourcemap(self._target)
 
-
     def _validate_target(self, target):
-        """Do some basic validation on the target."""
+        """Basic validation on the target."""
         parsed = urlparse(target)
         if self._is_local is True:
             self._target = os.path.abspath(target)
@@ -84,16 +70,6 @@ class SourceMapExtractor(object):
             self._target = target
             if ext != '.map' and self._attempt_sourcemap_detection is False:
                 print("WARNING: URI does not have .map extension, and --detect is not flagged.")
-
-
-    def _parse_remote_sourcemap(self, uri):
-        """GET a remote sourcemap and parse it."""
-        data = self._get_remote_data(uri)
-        if data is not None:
-            self._parse_sourcemap(data, True)
-        else:
-            print("WARNING: Could not retrieve sourcemap from URI %s" % uri)
-
 
     def _detect_js_sourcemaps(self, uri):
         """Pull HTML and attempt to find JS files, then read the JS files and look for sourceMappingURL."""
@@ -145,7 +121,6 @@ class SourceMapExtractor(object):
         
         return remote_sourcemaps
 
-
     def _parse_sourcemap(self, target, is_str=False):
         map_data = ""
         if is_str is False:
@@ -184,10 +159,18 @@ class SourceMapExtractor(object):
                 if write_path is not None:
                     os.makedirs(os.path.dirname(write_path), mode=0o755, exist_ok=True)
                     with open(write_path, 'w') as f:
-                        print("Writing %s..." % os.path.basename(write_path))
+                        print("Writing %s..." % os.path.relpath(write_path))
                         f.write(content)
             else:
                 break
+    
+    def _parse_remote_sourcemap(self, uri):
+        """GET a remote sourcemap and parse it."""
+        data = self._get_remote_data(uri)
+        if data is not None:
+            self._parse_sourcemap(data, True)
+        else:
+            print("WARNING: Could not retrieve sourcemap from URI %s" % uri)
 
     def _get_sanitised_file_path(self, sourcePath):
         """Sanitise webpack paths for separators/relative paths"""

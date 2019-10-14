@@ -17,7 +17,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-Install all dependencies
+Go to project directory and install all dependencies
 
 ```shell
 pip install -r dependencies.txt
@@ -29,7 +29,6 @@ Flag list:
 
 - `--local` for local sourcemap
 - `--detect` detect the source for remote sourcemap
-- `--make-directory` for make output directory automatically otherwise it will output an error if directory is not exists
 
 ### Extract from local sourcemaps
 

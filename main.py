@@ -1,7 +1,12 @@
+"""
+  Reads Webpack source maps and extracts the disclosed un-compiled/commented source code for review.
+  Can detect and attempt to read sourcemaps from Webpack bundles with the `-d` flag.
+  Put source into a directory structure similar to dev.
+"""
+
 import argparse
 import sys
-from source_map_extractor import SourceMapExtractor
-
+from src.source_map_extractor import SourceMapExtractor
 
 def main():
     parser = argparse.ArgumentParser(
